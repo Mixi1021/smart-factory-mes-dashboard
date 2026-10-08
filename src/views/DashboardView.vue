@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {computed, ref} from 'vue'
-import type {WorkOrder} from '../types/workOrder'
+import { computed, ref } from 'vue'
+import type { WorkOrder } from '../types/workOrder'
 import KpiCard from '../components/KpiCard.vue'
 
 const workOrders = ref<WorkOrder[]>([
@@ -34,32 +34,32 @@ const workOrders = ref<WorkOrder[]>([
   },
 ])
 
-const activeWorkOrders = computed(() => 
+const activeWorkOrders = computed(() =>
   workOrders.value.filter((order) => order.status === 'running').length
 )
 
-const completedWorkOrders = computed(() => 
+const completedWorkOrders = computed(() =>
   workOrders.value.filter((order) => order.status === 'completed').length
 )
 
-const totalProduction = computed(() => 
+const totalProduction = computed(() =>
   workOrders.value.reduce(
-    (total, order) => total + order.completedQuantity, 
+    (total, order) => total + order.completedQuantity,
     0,
   ),
 )
 
 const completionRate = computed(() => {
   const totalQuantity = workOrders.value.reduce(
-    (total, order) => total + order.quantity, 
+    (total, order) => total + order.quantity,
     0,
   )
 
   if (totalQuantity === 0) return 0
 
-    return Math.round(
-        (totalProduction.value / totalQuantity) * 100,
-    )
+  return Math.round(
+    (totalProduction.value / totalQuantity) * 100,
+  )
 })
 </script>
 
@@ -77,31 +77,21 @@ const completionRate = computed(() => {
 
     <v-row>
       <v-col cols="12" sm="6" lg="3">
-        <KpiCard
-          title="Active Work Orders"
-          :value="activeWorkOrders"
-        />
+        <KpiCard title="Active Work Orders" :value="activeWorkOrders" icon="mdi-progress-clock" color="info" />
       </v-col>
 
       <v-col cols="12" sm="6" lg="3">
-        <KpiCard
-          title="Completed Work Orders"
-          :value="completedWorkOrders"
-        />
+        <KpiCard title="Completed Work Orders" :value="completedWorkOrders" icon="mdi-check-circle-outline"
+          color="success" />
       </v-col>
 
       <v-col cols="12" sm="6" lg="3">
-        <KpiCard
-          title="Units Produced"
-          :value="totalProduction"
-        />
+        <KpiCard title="Units Produced" :value="totalProduction" icon="mdi-factory" color="primary" />
       </v-col>
 
       <v-col cols="12" sm="6" lg="3">
-        <KpiCard
-          title="Completion Rate"
-          :value="`${completionRate}%`"
-        />
+        <KpiCard title="Completion Rate" :value="`${completionRate}%`" icon="mdi-chart-donut" color="warning"
+          :progress="completionRate" />
       </v-col>
     </v-row>
   </div>
