@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import {
+  getStatusColor,
+  getWorkOrderProgress,
+} from '../utils/workOrder'
 import { computed, ref } from 'vue'
 import type { WorkOrder } from '../types/workOrder'
 import KpiCard from '../components/KpiCard.vue'
 
+// 1. 工單資料
 const workOrders = ref<WorkOrder[]>([
   {
     id: 'WO-2026-001',
@@ -34,12 +39,13 @@ const workOrders = ref<WorkOrder[]>([
   },
 ])
 
+// 2. KPI 計算
 const activeWorkOrders = computed(() =>
-  workOrders.value.filter((order) => order.status === 'running').length
+  workOrders.value.filter((order) => order.status === 'running').length,
 )
 
 const completedWorkOrders = computed(() =>
-  workOrders.value.filter((order) => order.status === 'completed').length
+  workOrders.value.filter((order) => order.status === 'completed').length,
 )
 
 const totalProduction = computed(() =>
@@ -55,16 +61,24 @@ const completionRate = computed(() => {
     0,
   )
 
-  if (totalQuantity === 0) return 0
+  if (totalQuantity <= 0) return 0
 
-  return Math.round(
-    (totalProduction.value / totalQuantity) * 100,
-  )
+  return Math.round((totalProduction.value / totalQuantity) * 100)
 })
+
+// 3. 表格欄位設定
+const workOrderHeaders = [
+  { title: 'Work Order ID', key: 'id' },
+  { title: 'Product', key: 'product' },
+  { title: 'Status', key: 'status' },
+  { title: 'Progress', key: 'progress', sortable: false },
+  { title: 'Quantity', key: 'quantity' },
+]
 </script>
 
 <template>
   <div>
+    <!-- 頁面標題 -->
     <div class="mb-6">
       <h1 class="text-h4 font-weight-bold">
         Production Overview
@@ -75,6 +89,7 @@ const completionRate = computed(() => {
       </p>
     </div>
 
+    <!-- KPI Cards -->
     <v-row>
       <v-col cols="12" sm="6" lg="3">
         <KpiCard title="Active Work Orders" :value="activeWorkOrders" icon="mdi-progress-clock" color="info" />
@@ -94,5 +109,32 @@ const completionRate = computed(() => {
           :progress="completionRate" />
       </v-col>
     </v-row>
+
+    <!-- Recent Work Orders -->
+    <v-card class="mt-6">
+      <v-card-title class="pa-4">
+        Recent Work Orders
+      </v-card-title>
+
+      <v-data-table :headers="workOrderHeaders" :items="workOrders" item-value="id">
+        <!-- 工單狀態 -->
+        <template #item.status="{ item }">
+          <v-chip :color="getStatusColor(item.status)" size="small" variant="tonal">
+            {{ item.status }}
+          </v-chip>
+        </template>
+
+        <!-- 工單進度 -->
+        <template #item.progress="{ item }">
+          <div class="d-flex align-center ga-3" style="min-width: 140px">
+            <v-progress-linear :model-value="getWorkOrderProgress(item)" color="primary" height="6" rounded />
+
+            <span class="text-caption">
+              {{ item.completedQuantity }}/{{ item.quantity }}
+            </span>
+          </div>
+        </template>
+      </v-data-table>
+    </v-card>
   </div>
 </template>
